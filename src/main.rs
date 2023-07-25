@@ -22,14 +22,14 @@ use crate::{
 
 const IMAGE_SIZE: (usize, usize) = (256, 256);
 const IMAGE_NAME: &str = "out.ppm";
-const PIXEL_TO_WORLD: f32 = 0.01;
+const PIXEL_TO_WORLD: f32 = 0.008;
 
 fn main() {
     SimpleLogger::new().with_colors(true).init().unwrap();
 
     trace!("making an image");
     let (width, height) = IMAGE_SIZE;
-    let mut image = Image::new(width, height, Colour::from_hex(0x5555ff));
+    let mut image = Image::new(width, height, Colour::from_hex(0x000000));
 
     trace!("creating objects");
     let camera = Camera::new(
@@ -37,7 +37,7 @@ fn main() {
         Quaternion::from_axis_angle(Vec3D::Y, 0.),
         1.,
     );
-    let objects = [Sphere::default(), Sphere::new(Vec3D::X, 1.)];
+    let objects = [Sphere::default(), Sphere::new(Vec3D::X, 1.), Sphere::new(Vec3D::X * -2., 0.5)];
 
     trace!("rendering");
     for (x, y, pixel) in &mut image {
@@ -45,11 +45,12 @@ fn main() {
             (x as i32 - width as i32 / 2) as f32 * PIXEL_TO_WORLD,
             (y as i32 - height as i32 / 2) as f32 * PIXEL_TO_WORLD,
         );
-        let intersections = objects.iter().fold(Vec::new(), |previous, object| {
+        let mut intersections = objects.iter().fold(Vec::new(), |previous, object| {
             let mut previous = previous;
             previous.extend(object.intersections(&ray));
             previous
         });
+        intersections.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
         if !intersections.is_empty() {
             *pixel = Colour::gray({
                 let closest = intersections.first().unwrap();
