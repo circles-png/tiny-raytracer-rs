@@ -1,4 +1,4 @@
-use crate::{vector::Vec3D, quaternion::Quaternion, ray::Ray};
+use crate::{quaternion::Quaternion, ray::Ray, vector::Vec3D};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Camera {
@@ -12,11 +12,14 @@ impl Camera {
         Self {
             position,
             rotation,
-            screen_distance
+            screen_distance,
         }
     }
 
     pub fn ray_from_position(&self, x: f32, y: f32) -> Ray {
-        Ray::new(self.position, self.rotation * Vec3D::new(x, self.screen_distance, y))
+        Ray::new(
+            self.position,
+            self.rotation * Vec3D::new(x, self.screen_distance, -y),
+        )
     }
 }

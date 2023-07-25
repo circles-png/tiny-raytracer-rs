@@ -1,3 +1,4 @@
+#![feature(ptr_metadata)]
 use std::{fs::File, io::Write, process::Command};
 
 use log::trace;
@@ -5,7 +6,9 @@ use simple_logger::SimpleLogger;
 
 mod camera;
 mod colour;
+mod constants;
 mod image;
+mod lighting;
 mod math;
 mod physics;
 mod quaternion;
@@ -16,7 +19,7 @@ mod vector;
 use colour::Colour;
 
 use crate::{
-    camera::Camera, image::Image, math::map_range, physics::Physics, quaternion::Quaternion,
+    camera::Camera, image::Image, lighting::PointLight, physics::Object, quaternion::Quaternion,
     sphere::Sphere, vector::Vec3D,
 };
 
@@ -32,12 +35,22 @@ fn main() {
     let mut image = Image::new(width, height, Colour::from_hex(0x000000));
 
     trace!("creating objects");
-    let camera = Camera::new(
-        Vec3D::Y * -5.,
-        Quaternion::from_axis_angle(Vec3D::Y, 0.),
-        1.,
-    );
-    let objects = [Sphere::default(), Sphere::new(Vec3D::X, 1.), Sphere::new(Vec3D::X * -2., 0.5)];
+    let camera = Camera::new(Vec3D::Y * -5., Quaternion::IDENTITY, 1.);
+    let objects = [
+        Sphere::unit(Colour::from_hex(0xffffff)),
+        Sphere::new(Vec3D::X, 1., Colour::from_hex(0xff0000)),
+        Sphere::new(
+            Vec3D::X * -2. + Vec3D::Y * 0.5,
+            0.5,
+            Colour::from_hex(0xff0000),
+        ),
+        Sphere::new(Vec3D::new(0., -1., 2.), 1., Colour::from_hex(0xffffff)),
+    ];
+    let lights = [
+        PointLight::new(Vec3D::new(-10., -10., 10.), 400.),
+        PointLight::new(Vec3D::new(10., -10., -10.), 200.),
+    ];
+    let ambient_lighting = 0.1;
 
     trace!("rendering");
     for (x, y, pixel) in &mut image {
@@ -52,15 +65,21 @@ fn main() {
         });
         intersections.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
         if !intersections.is_empty() {
-            *pixel = Colour::gray({
-                let closest = intersections.first().unwrap();
-                map_range(
-                    closest.distance,
-                    ((camera.position - closest.object.centre()).length() - closest.object.extent() / 2.)
-                        ..((camera.position - closest.object.centre()).length() + closest.object.extent() / 2.),
-                    (1.)..0.,
-                )
-            })
+            *pixel = {
+                let first_hit = intersections.first().unwrap();
+                let diffuse_light_intensity =
+                    lights.iter().fold(ambient_lighting, |previous, light| {
+                        let (light_direction, light_distance) = {
+                            let difference = light.position - first_hit.position;
+                            (difference.normalise(), difference.length())
+                        };
+                        previous
+                            + light.intensity
+                                * 0_f32.max(light_direction.dot(first_hit.normal))
+                                * (1. / light_distance.powi(2))
+                    });
+                first_hit.object.diffuse_colour() * diffuse_light_intensity
+            }
         }
     }
 

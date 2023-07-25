@@ -1,7 +1,8 @@
 use std::mem::swap;
 
 use crate::{
-    physics::{Intersection, Physics},
+    colour::Colour,
+    physics::{Intersection, Object},
     ray::Ray,
     vector::Vec3D,
 };
@@ -10,15 +11,27 @@ use crate::{
 pub struct Sphere {
     pub centre: Vec3D,
     pub radius: f32,
+    pub diffuse_colour: Colour,
 }
 
 impl Sphere {
-    pub fn new(centre: Vec3D, radius: f32) -> Self {
-        Self { centre, radius }
+    pub fn new(centre: Vec3D, radius: f32, diffuse_colour: Colour) -> Self {
+        Self {
+            centre,
+            radius,
+            diffuse_colour,
+        }
+    }
+
+    pub fn unit(diffuse_colour: Colour) -> Self {
+        Self {
+            diffuse_colour,
+            ..Default::default()
+        }
     }
 }
 
-impl Physics for Sphere {
+impl Object for Sphere {
     fn intersections(&self, ray: &Ray) -> Vec<Intersection> {
         let oc = ray.origin - self.centre;
         let a = ray.direction.dot(ray.direction);
@@ -59,13 +72,18 @@ impl Physics for Sphere {
     fn centre(&self) -> Vec3D {
         self.centre
     }
+
+    fn diffuse_colour(&self) -> Colour {
+        self.diffuse_colour
+    }
 }
 
 impl Default for Sphere {
     fn default() -> Self {
         Self {
-            centre: Vec3D::ZERO,
+            centre: Vec3D::default(),
             radius: 1.,
+            diffuse_colour: Colour::default(),
         }
     }
 }
@@ -76,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_sphere_intersections() {
-        let sphere = Sphere::new(Vec3D::new(0., 0., 0.), 1.);
+        let sphere = Sphere::default();
         let ray = Ray::new(Vec3D::new(0., 0., 5.), Vec3D::new(0., 0., -1.));
         let intersections = sphere.intersections(&ray);
         assert_eq!(intersections.len(), 2);
@@ -90,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_sphere_intersections_tangent() {
-        let sphere = Sphere::new(Vec3D::new(0., 0., 0.), 1.);
+        let sphere = Sphere::default();
         let ray = Ray::new(Vec3D::new(0., 1., 1.), Vec3D::new(0., -1., 0.));
         let intersections = sphere.intersections(&ray);
         assert_eq!(intersections.len(), 1);
@@ -101,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_sphere_intersections_miss() {
-        let sphere = Sphere::new(Vec3D::new(0., 0., 0.), 1.);
+        let sphere = Sphere::default();
         let ray = Ray::new(Vec3D::new(0., 0., 2.), Vec3D::new(0., 1., 0.));
         let intersections = sphere.intersections(&ray);
         assert!(intersections.is_empty());
@@ -109,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_sphere_intersections_inside() {
-        let sphere = Sphere::new(Vec3D::new(0., 0., 0.), 1.);
+        let sphere = Sphere::default();
         let ray = Ray::new(Vec3D::new(0., 0., 0.), Vec3D::new(0., 0., -1.));
         let intersections = sphere.intersections(&ray);
         assert_eq!(intersections.len(), 1);

@@ -1,6 +1,8 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
+use crate::{constants::EPSILON, quaternion::Quaternion};
+
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Vec3D {
     pub x: f32,
     pub y: f32,
@@ -32,8 +34,16 @@ impl Vec3D {
         Self::new(
             self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
-            self.x * rhs.y - self.y * rhs.z,
+            self.x * rhs.y - self.y * rhs.x,
         )
+    }
+}
+
+impl PartialEq for Vec3D {
+    fn eq(&self, other: &Self) -> bool {
+        (self.x - other.x).abs() < EPSILON
+            && (self.y - other.y).abs() < EPSILON
+            && (self.z - other.z).abs() < EPSILON
     }
 }
 
@@ -117,5 +127,11 @@ impl Neg for Vec3D {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self::new(-self.x, -self.y, -self.z)
+    }
+}
+
+impl From<Quaternion> for Vec3D {
+    fn from(value: Quaternion) -> Self {
+        Self::new(value.x, value.y, value.z)
     }
 }
