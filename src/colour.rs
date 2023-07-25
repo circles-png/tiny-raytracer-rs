@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Colour {
     pub red: f32,
     pub green: f32,
@@ -25,10 +25,41 @@ impl Colour {
     pub fn as_rgb(self) -> [f32; 3] {
         [self.red, self.green, self.blue]
     }
+
+    pub fn gray(value: f32) -> Self {
+        Self::new(value, value, value)
+    }
 }
 
-impl Default for Colour {
-    fn default() -> Self {
-        Self::new(0., 0., 0.)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let colour = Colour::new(1., 1., 1.);
+        assert_eq!(colour.red, 1.);
+        assert_eq!(colour.green, 1.);
+        assert_eq!(colour.blue, 1.);
+    }
+
+    #[test]
+    fn test_from_hex() {
+        let colour = Colour::from_hex(0xffffff);
+        assert_eq!(colour.red, 1.);
+        assert_eq!(colour.green, 1.);
+        assert_eq!(colour.blue, 1.);
+    }
+
+    #[test]
+    fn test_as_hex() {
+        let colour = Colour::new(1., 1., 1.);
+        assert_eq!(colour.as_hex(), 0xffffff);
+    }
+
+    #[test]
+    fn test_as_rgb() {
+        let colour = Colour::new(1., 1., 1.);
+        assert_eq!(colour.as_rgb(), [1., 1., 1.]);
     }
 }
