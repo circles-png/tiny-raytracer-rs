@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Add, Mul};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Colour {
@@ -32,6 +32,17 @@ impl Colour {
 
     pub fn gray(value: f32) -> Self {
         Self::new(value, value, value)
+    }
+}
+
+impl Add for Colour {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.red + rhs.red,
+            self.green + rhs.green,
+            self.blue + rhs.blue,
+        )
     }
 }
 

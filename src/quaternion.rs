@@ -102,9 +102,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_axis_angle() {}
-
-    #[test]
     fn test_rotate() {
         let quaternion = Quaternion::rotate(Vec3D::X, Vec3D::Y, Vec3D::Z);
         assert_eq!(quaternion, Quaternion::from_axis_angle(Vec3D::Z, PI / 2.));

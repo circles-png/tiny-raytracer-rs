@@ -1,31 +1,30 @@
 use std::mem::swap;
 
 use crate::{
-    colour::Colour,
     physics::{Intersection, Object},
     ray::Ray,
-    vector::Vec3D,
+    vector::Vec3D, material::Material,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Sphere {
     pub centre: Vec3D,
     pub radius: f32,
-    pub diffuse_colour: Colour,
+    pub material: Material,
 }
 
 impl Sphere {
-    pub fn new(centre: Vec3D, radius: f32, diffuse_colour: Colour) -> Self {
+    pub fn new(centre: Vec3D, radius: f32, material: Material) -> Self {
         Self {
             centre,
             radius,
-            diffuse_colour,
+            material,
         }
     }
 
-    pub fn unit(diffuse_colour: Colour) -> Self {
+    pub fn unit(material: Material) -> Self {
         Self {
-            diffuse_colour,
+            material,
             ..Default::default()
         }
     }
@@ -60,7 +59,8 @@ impl Object for Sphere {
                 distance: (*intersection - ray.origin).length(),
                 position: *intersection,
                 normal: (*intersection - self.centre).normalise(),
-                object: Box::new(*self),
+                object: Box::new(self.clone()),
+                ray: *ray
             })
             .collect::<Vec<Intersection>>()
     }
@@ -73,8 +73,8 @@ impl Object for Sphere {
         self.centre
     }
 
-    fn diffuse_colour(&self) -> Colour {
-        self.diffuse_colour
+    fn material(&self) -> Material {
+        self.material.clone()
     }
 }
 
@@ -83,7 +83,7 @@ impl Default for Sphere {
         Self {
             centre: Vec3D::default(),
             radius: 1.,
-            diffuse_colour: Colour::default(),
+            material: Material::default()
         }
     }
 }

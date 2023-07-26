@@ -15,27 +15,37 @@ impl Vec3D {
     pub const X: Self = Self::new(1., 0., 0.);
     pub const Y: Self = Self::new(0., 1., 0.);
     pub const Z: Self = Self::new(0., 0., 1.);
+
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
+
     pub const fn triple(xyz: f32) -> Self {
         Self::new(xyz, xyz, xyz)
     }
+
     pub fn length(self) -> f32 {
         self.x.hypot(self.y).hypot(self.z)
     }
+
     pub fn normalise(self) -> Self {
         self / self.length()
     }
+
     pub fn dot(self, rhs: Self) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
+
     pub fn cross(self, rhs: Self) -> Self {
         Self::new(
             self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
             self.x * rhs.y - self.y * rhs.x,
         )
+    }
+
+    pub fn reflect(self, plane_normal: Self) -> Self {
+        self - 2. * self.dot(plane_normal) * plane_normal
     }
 }
 
@@ -133,5 +143,22 @@ impl Neg for Vec3D {
 impl From<Quaternion> for Vec3D {
     fn from(value: Quaternion) -> Self {
         Self::new(value.x, value.y, value.z)
+    }
+}
+
+impl From<[f32; 3]> for Vec3D {
+    fn from(value: [f32; 3]) -> Self {
+        let mut value = value.iter();
+        Vec3D::new(
+            *value.next().unwrap(),
+            *value.next().unwrap(),
+            *value.next().unwrap(),
+        )
+    }
+}
+
+impl From<Vec3D> for [f32; 3] {
+    fn from(value: Vec3D) -> Self {
+        [value.x, value.y, value.z]
     }
 }

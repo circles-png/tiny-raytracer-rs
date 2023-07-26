@@ -1,12 +1,12 @@
 use std::fmt::Debug;
 
-use crate::{colour::Colour, ray::Ray, vector::Vec3D};
+use crate::{ray::Ray, vector::Vec3D, material::Material};
 
 pub trait Object: Debug {
     fn intersections(&self, ray: &Ray) -> Vec<Intersection>;
     fn extent(&self) -> f32;
     fn centre(&self) -> Vec3D;
-    fn diffuse_colour(&self) -> Colour;
+    fn material(&self) -> Material;
 }
 
 #[derive(Debug)]
@@ -15,6 +15,7 @@ pub struct Intersection {
     pub distance: f32,
     pub normal: Vec3D,
     pub object: Box<dyn Object>,
+    pub ray: Ray
 }
 
 impl PartialOrd for Intersection {
