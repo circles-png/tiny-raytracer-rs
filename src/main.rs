@@ -39,7 +39,7 @@ fn main() {
     let camera = Camera::new(
         Vec3D::default(),
         Quaternion::from_axis_angle(Vec3D::X, -PI / 2.),
-        5.,
+        5.6,
     );
     let ivory = Material {
         albedo: 0.3..0.6,
@@ -81,17 +81,18 @@ fn main() {
                 let material = first_hit.object.material();
                 let (diffuse_light_intensity, specular_light_intensity) =
                     lights.iter().fold((0., 0.), |previous, light| {
-                        let light_direction = (light.position - first_hit.position).normalise();
+                        let hit_to_light = (first_hit.position - light.position).normalise();
                         (
                             previous.0
-                                + 0_f32.max(light_direction.dot(first_hit.normal))
+                                + 0_f32.max(hit_to_light.dot(first_hit.normal.normalise()))
                                     * light.intensity,
                             previous.1
                                 + 0_f32
                                     .max(
-                                        light_direction
-                                            .reflect(first_hit.normal)
-                                            .dot(first_hit.ray.direction),
+                                        hit_to_light
+                                            .reflect(first_hit.normal.cross(hit_to_light).cross(first_hit.normal))
+                                            .normalise()
+                                            .dot(-first_hit.ray.direction.normalise()),
                                     )
                                     .powf(material.specular_exponent)
                                     * light.intensity,

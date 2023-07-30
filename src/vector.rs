@@ -45,7 +45,7 @@ impl Vec3D {
     }
 
     pub fn reflect(self, plane_normal: Self) -> Self {
-        self - 2. * self.dot(plane_normal) * plane_normal
+        self - plane_normal * 2. * self.dot(plane_normal)
     }
 }
 
@@ -98,13 +98,6 @@ impl Sub<f32> for Vec3D {
     }
 }
 
-impl Mul for Vec3D {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        Self::new(self.x * rhs.x, self.y * rhs.y, self.z * rhs.z)
-    }
-}
-
 impl Mul<f32> for Vec3D {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self::Output {
@@ -116,13 +109,6 @@ impl Mul<Vec3D> for f32 {
     type Output = Vec3D;
     fn mul(self, rhs: Vec3D) -> Self::Output {
         Vec3D::new(self * rhs.x, self * rhs.y, self * rhs.z)
-    }
-}
-
-impl Div for Vec3D {
-    type Output = Self;
-    fn div(self, rhs: Self) -> Self::Output {
-        Self::new(self.x / rhs.x, self.y / rhs.y, self.z / rhs.z)
     }
 }
 
@@ -160,5 +146,95 @@ impl From<[f32; 3]> for Vec3D {
 impl From<Vec3D> for [f32; 3] {
     fn from(value: Vec3D) -> Self {
         [value.x, value.y, value.z]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_new() {
+        assert_eq!(
+            Vec3D::new(1., 2., 3.),
+            Vec3D {
+                x: 1.,
+                y: 2.,
+                z: 3.
+            }
+        );
+    }
+
+    #[test]
+    fn test_triple() {
+        assert_eq!(
+            Vec3D::triple(1.),
+            Vec3D {
+                x: 1.,
+                y: 1.,
+                z: 1.
+            }
+        );
+    }
+
+    #[test]
+    fn test_length() {
+        assert_eq!(Vec3D::new(1., 2., 3.).length(), 3.7416575);
+    }
+
+    #[test]
+    fn test_normalise() {
+        assert_eq!(
+            Vec3D::new(1., 2., 3.).normalise(),
+            Vec3D {
+                x: 0.26726124,
+                y: 0.5345225,
+                z: 0.8017837
+            }
+        );
+    }
+
+    #[test]
+    fn test_dot() {
+        assert_eq!(Vec3D::new(1., 2., 3.).dot(Vec3D::new(4., 5., 6.)), 32.);
+    }
+
+    #[test]
+    fn test_cross() {
+        assert_eq!(
+            Vec3D::new(1., 2., 3.).cross(Vec3D::new(4., 5., 6.)),
+            Vec3D {
+                x: -3.,
+                y: 6.,
+                z: -3.
+            }
+        );
+    }
+
+    #[test]
+    fn test_reflection() {
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(0., 1., 0.).normalise()),
+            Vec3D::new(1., -1., 0.)
+        );
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(1., 1., 0.).normalise()),
+            Vec3D::new(-1., -1., 0.)
+        );
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(0., 0., 1.).normalise()),
+            Vec3D::new(1., 1., 0.)
+        );
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(1., 0., 0.).normalise()),
+            Vec3D::new(-1., 1., 0.)
+        );
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(0., 1., 1.).normalise()),
+            Vec3D::new(1., 0., -1.)
+        );
+        assert_eq!(
+            Vec3D::new(1., 1., 0.).reflect(Vec3D::new(1., 1., 1.).normalise()),
+            Vec3D::new(-1. / 3., -1. / 3., -4. / 3.)
+        );
     }
 }
